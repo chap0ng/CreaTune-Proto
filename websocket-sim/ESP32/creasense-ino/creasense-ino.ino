@@ -14,17 +14,6 @@ unsigned long lastSendTime = 0;
 unsigned long lastConnectionAttempt = 0;
 const unsigned long connectionRetryInterval = 5000; // 5 seconds between connection attempts
 
-// LED pin for status indication
-const int STATUS_LED = 38; // Built-in LED on Firebeetle 2 C6
-
-// DFRobot Moisture Sensor ranges
-const int MOISTURE_DRY = 0;     // Dry soil minimum value
-const int MOISTURE_DRY_MAX = 300;  // Dry soil maximum value
-const int MOISTURE_HUMID_MIN = 300; // Humid soil minimum value
-const int MOISTURE_HUMID_MAX = 700; // Humid soil maximum value
-const int MOISTURE_WET_MIN = 700;   // In water minimum value
-const int MOISTURE_WET_MAX = 950;   // In water maximum value
-
 // For smoothing sensor readings
 const int NUM_READINGS = 5;
 int moistureReadings[NUM_READINGS];
@@ -34,8 +23,8 @@ int averageMoisture = 0;
 
 void setup() {
   // Initialize serial for debugging
-  Serial.begin(115200);
-  Serial.println("\nCreaSense Moisture Sensor - Starting up...");
+  Serial.begin(9600);
+  Serial.println("\nCreaSense Moisture Sensor - Starting up... (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧");
 
   // Set up LED pin
   pinMode(STATUS_LED, OUTPUT);
@@ -49,33 +38,10 @@ void setup() {
     moistureReadings[i] = 0;
   }
 
-  // Connect to WiFi
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  Serial.print("Connecting to WiFi");
+  // Connect to WiFi with blinky lights (｀・ω・´)
+  connectToWiFi();
   
-  int wifiAttempts = 0;
-  while (WiFi.status() != WL_CONNECTED && wifiAttempts < 20) {
-    delay(500);
-    Serial.print(".");
-    digitalWrite(STATUS_LED, !digitalRead(STATUS_LED)); // Blink LED
-    wifiAttempts++;
-  }
-  
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("\nConnected to WiFi!");
-    digitalWrite(STATUS_LED, HIGH); // LED on when connected
-    
-    // Print connection details
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP());
-    Serial.print("RSSI: ");
-    Serial.println(WiFi.RSSI());
-  } else {
-    Serial.println("\nFailed to connect to WiFi!");
-    digitalWrite(STATUS_LED, LOW); // LED off when failed
-  }
-
-  // WebSocket configuration
+  // Setup WebSocket connection
   Serial.print("WebSocket Server: ");
   Serial.print(WEBSOCKET_HOST);
   Serial.print(":");
@@ -93,16 +59,16 @@ void setup() {
   Serial.print("Reading Interval: ");
   Serial.print(READING_INTERVAL);
   Serial.println("ms");
-  Serial.println("DFRobot Moisture Sensor connected");
+  Serial.println("DFRobot Moisture Sensor connected to pin A1 ฅ(^•ﻌ•^)ฅ");
 }
 
 void loop() {
-  // Check WiFi connection and reconnect if needed
+  // Auto-reconnect if WiFi drops (╯°□°）╯︵ ┻━┻
   if (WiFi.status() != WL_CONNECTED) {
     unsigned long currentMillis = millis();
     if (currentMillis - lastConnectionAttempt > connectionRetryInterval) {
-      Serial.println("WiFi disconnected. Reconnecting...");
-      WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+      Serial.println("WiFi disconnected! Reconnecting... (´；ω；`)");
+      connectToWiFi();
       lastConnectionAttempt = currentMillis;
     }
     digitalWrite(STATUS_LED, LOW); // LED off when disconnected
@@ -117,20 +83,21 @@ void loop() {
       lastSendTime = currentTime;
       
       // Blink LED on data send
-      digitalWrite(STATUS_LED, LOW);
-      delay(50);
       digitalWrite(STATUS_LED, HIGH);
+      delay(200);
+      digitalWrite(STATUS_LED, LOW);
     }
   }
 }
 
 // Read the moisture sensor and smooth the values
-int readMoistureSensor() {
+float readSoilMoisture() {
   // Subtract the last reading
   totalMoisture = totalMoisture - moistureReadings[readIndex];
   
   // Read the sensor
-  moistureReadings[readIndex] = analogRead(SENSOR_PIN);
+  int rawValue = analogRead(SENSOR_PIN);
+  moistureReadings[readIndex] = rawValue;
   
   // Add the reading to the total
   totalMoisture = totalMoisture + moistureReadings[readIndex];
@@ -141,11 +108,35 @@ int readMoistureSensor() {
   // Calculate the average
   averageMoisture = totalMoisture / NUM_READINGS;
   
-  return averageMoisture;
+  // Sensor error detection
+  if (rawValue < 0 || rawValue > 4095) {
+    Serial.println("Soil sensor not found! (╥﹏╥) Check wiring to A1");
+    return -1.0; // Error code
+  }
+  
+  // Your custom ranges (◠‿◠)
+  Serial.print("Soil Raw: ");
+  Serial.print(rawValue);
+  Serial.print(" | Status: ");
+  
+  if (rawValue <= MOISTURE_DRY_MAX) {
+    Serial.println("Dry soil ＞﹏＜");
+  } 
+  else if (rawValue <= MOISTURE_HUMID_MAX) {
+    Serial.println("Humid soil (￣ω￣)");
+  }
+  else if (rawValue <= MOISTURE_WET_MAX) {
+    Serial.println("In water 〜(꒪꒳꒪)〜");
+  }
+  else {
+    Serial.println("Sensor out of range! (⊙_⊙)？");
+  }
+  
+  return (float)averageMoisture;
 }
 
 // Map moisture reading to app-compatible range (0.4-0.8)
-float moistureToAppValue(int moistureValue) {
+float moistureToAppValue(float moistureValue) {
   float appValue;
   
   // Determine soil condition and map to appropriate range
@@ -171,7 +162,13 @@ float moistureToAppValue(int moistureValue) {
 
 void sendSensorData() {
   // Read moisture sensor
-  int moistureValue = readMoistureSensor();
+  float moistureValue = readSoilMoisture();
+  
+  // Check if valid reading
+  if (moistureValue < 0) {
+    Serial.println("Invalid sensor reading, not sending data... (눈_눈)");
+    return;
+  }
   
   // Map to app-compatible value (0.4-0.8)
   float appValue = moistureToAppValue(moistureValue);
@@ -179,7 +176,7 @@ void sendSensorData() {
   // Create JSON document
   StaticJsonDocument<200> doc;
   doc["sensor"] = SENSOR_NAME;
-  doc["raw_value"] = moistureValue;
+  doc["raw_value"] = (int)moistureValue;
   doc["moisture_app_value"] = appValue;
   doc["voltage"] = appValue; // Send as voltage to be compatible with app
   doc["timestamp"] = millis();
@@ -199,8 +196,9 @@ void sendSensorData() {
   serializeJson(doc, jsonString);
   
   // Log the data
-  Serial.print("Sending: ");
+  Serial.print("Sending data: ");
   Serial.println(jsonString);
+  Serial.println("ヾ(^▽^*)))");
   
   // Send through WebSocket
   webSocket.sendTXT(jsonString);
@@ -209,25 +207,44 @@ void sendSensorData() {
 void webSocketEvent(WStype_t type, uint8_t *payload, size_t length) {
   switch (type) {
     case WStype_DISCONNECTED:
-      Serial.println("WebSocket Disconnected");
+      Serial.println("WebSocket Disconnected (；一_一)");
       break;
       
     case WStype_CONNECTED:
-      Serial.println("WebSocket Connected");
+      Serial.println("WebSocket Connected! (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧");
       // Send initial data immediately after connection
       sendSensorData();
       break;
       
     case WStype_TEXT:
       Serial.printf("Received text: %s\n", payload);
-      
-      // You can parse received commands here if needed
-      // For example, to change reading interval or other settings
-      
+      Serial.println("(^-^)v");
       break;
       
     case WStype_ERROR:
-      Serial.println("[WSc] Error!");
+      Serial.println("WebSocket Error! (╥﹏╥)");
       break;
+  }
+}
+
+// WiFi connection with cute retries ฅ^•ﻌ•^ฅ
+void connectToWiFi() {
+  Serial.println("Connecting to WiFi... (｀・ω・´)");
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  
+  int retries = 0;
+  while (WiFi.status() != WL_CONNECTED && retries < 10) {
+    digitalWrite(STATUS_LED, HIGH); delay(200);
+    digitalWrite(STATUS_LED, LOW); delay(200);
+    Serial.print(">w< ");
+    retries++;
+  }
+  
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\nWiFi connected! (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧");
+    Serial.print("IP: ");
+    Serial.println(WiFi.localIP());
+  } else {
+    Serial.println("\nWiFi failed... (；一_一)");
   }
 }
