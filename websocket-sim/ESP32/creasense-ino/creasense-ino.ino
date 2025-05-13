@@ -141,16 +141,16 @@ float moistureToAppValue(float moistureValue) {
   
   // Determine soil condition and map to appropriate range
   if (moistureValue <= MOISTURE_DRY_MAX) {
-    // Dry soil (0-300) maps to 0.4-0.5
-    appValue = map(moistureValue, MOISTURE_DRY, MOISTURE_DRY_MAX, 40, 50) / 100.0;
+    // Dry soil (0-400) maps to 0.0-0.4
+    appValue = map(moistureValue, MOISTURE_DRY, MOISTURE_DRY_MAX, 0, 50) / 100.0;
   } 
   else if (moistureValue <= MOISTURE_HUMID_MAX) {
-    // Humid soil (301-700) maps to 0.5-0.7
-    appValue = map(moistureValue, MOISTURE_HUMID_MIN, MOISTURE_HUMID_MAX, 50, 70) / 100.0;
+    // Humid soil (401-700) maps to 0.4-0.7
+    appValue = map(moistureValue, MOISTURE_HUMID_MIN, MOISTURE_HUMID_MAX, 40, 70) / 100.0;
   } 
   else {
-    // In water (701-950) maps to 0.7-0.8
-    appValue = map(moistureValue, MOISTURE_WET_MIN, MOISTURE_WET_MAX, 70, 80) / 100.0;
+    // In water (701-950) maps to 0.7-1.0
+    appValue = map(moistureValue, MOISTURE_WET_MIN, MOISTURE_WET_MAX, 70, 100) / 100.0;
   }
   
   // Ensure value is within 0.4-0.8 range
@@ -165,7 +165,7 @@ void sendSensorData() {
   float moistureValue = readSoilMoisture();
   
   // Check if valid reading
-  if (moistureValue < 0) {
+  if (moistureValue > 950) {
     Serial.println("Invalid sensor reading, not sending data... (눈_눈)");
     return;
   }

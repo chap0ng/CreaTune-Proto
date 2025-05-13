@@ -6,13 +6,13 @@
 #define WIFI_PASSWORD "Creax"
 
 // WebSocket configuration
-#define WEBSOCKET_HOST "192.168.43.1"
+#define WEBSOCKET_HOST "192.168.79.9"
 #define WEBSOCKET_PORT 8080
 #define WEBSOCKET_PATH "/"
 
 // Sensor configuration
 #define SENSOR_NAME "MoistureSensor"
-#define SENSOR_PIN 1                    // Connect moisture sensor to ADC pin 1 (GPIO1/A1)
+#define SENSOR_PIN A1                   // Connect moisture sensor to A1 pin
 #define READING_INTERVAL 5000           // Send data every 5000ms (5 seconds)
 
 // LED pin
