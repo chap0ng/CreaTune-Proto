@@ -318,3 +318,15 @@ h1 {
 .creature-reacting {
     animation: creatureReact 0.4s ease;
 }
+
+@media screen and (orientation: portrait) {
+  html {
+    transform: rotate(-90deg);
+    transform-origin: left top;
+    width: 100vh;
+    height: 100vw;
+    position: absolute;
+    top: 100%;
+    left: 0;
+  }
+}
