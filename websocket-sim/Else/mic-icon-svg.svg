@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Mic Icon -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <style>
+    .pixel {
+      width: 2px;
+      height: 2px;
+    }
+    .primary {
+      fill: #e6695a;
+    }
+    .secondary {
+      fill: #699bc8;
+    }
+    .tertiary {
+      fill: #8ea47d;
+    }
+    .black {
+      fill: #333333;
+    }
+    .white {
+      fill: #ffffff;
+    }
+  </style>
+  
+  <!-- Microphone base -->
+  <rect x="12" y="8" width="8" height="10" class="black" />
+  <rect x="13" y="9" width="6" height="8" class="secondary" />
+  
+  <!-- Microphone top -->
+  <rect x="14" y="6" width="4" height="2" class="black" />
+  <rect x="14" y="7" width="4" height="1" class="secondary" />
+  
+  <!-- Microphone stand -->
+  <rect x="14" y="18" width="4" height="4" class="black" />
+  <rect x="10" y="22" width="12" height="2" class="black" />
+  <rect x="11" y="23" width="10" height="1" class="black" />
+  
+  <!-- Reflection highlight -->
+  <rect x="15" y="10" width="2" height="4" class="white" opacity="0.3" />
+</svg>

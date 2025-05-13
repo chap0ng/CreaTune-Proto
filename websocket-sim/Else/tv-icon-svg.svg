@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- TV/ESP32 Icon -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <style>
+    .pixel {
+      width: 2px;
+      height: 2px;
+    }
+    .primary {
+      fill: #e6695a;
+    }
+    .secondary {
+      fill: #699bc8;
+    }
+    .tertiary {
+      fill: #8ea47d;
+    }
+    .black {
+      fill: #333333;
+    }
+    .white {
+      fill: #ffffff;
+    }
+    .gray {
+      fill: #cccccc;
+    }
+  </style>
+  
+  <!-- TV body -->
+  <rect x="6" y="8" width="20" height="14" class="black" />
+  <rect x="8" y="10" width="16" height="10" class="secondary" />
+  
+  <!-- TV stand -->
+  <rect x="12" y="22" width="8" height="2" class="black" />
+  <rect x="14" y="24" width="4" height="1" class="black" />
+  
+  <!-- Antenna -->
+  <rect x="10" y="6" width="2" height="2" class="black" />
+  <rect x="12" y="4" width="2" height="2" class="black" />
+  <rect x="14" y="2" width="2" height="2" class="black" />
+  
+  <rect x="20" y="6" width="2" height="2" class="black" />
+  <rect x="18" y="4" width="2" height="2" class="black" />
+  <rect x="16" y="2" width="2" height="2" class="black" />
+  
+  <!-- Screen content -->
+  <rect x="10" y="12" width="4" height="2" class="primary" />
+  <rect x="18" y="12" width="4" height="2" class="primary" />
+  <rect x="14" y="16" width="4" height="2" class="tertiary" />
+  
+  <!-- Controls -->
+  <rect x="22" y="12" width="1" height="1" class="white" />
+  <rect x="22" y="14" width="1" height="1" class="white" />
+  <rect x="22" y="16" width="1" height="1" class="white" />
+</svg>
