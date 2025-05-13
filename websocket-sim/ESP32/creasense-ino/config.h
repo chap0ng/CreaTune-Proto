@@ -3,7 +3,7 @@
 
 // WiFi configuration
 #define WIFI_SSID "CreaTone"
-#define WIFI_PASSWORD "Creax"
+#define WIFI_PASSWORD "CreaToToToTone"
 
 // WebSocket configuration
 #define WEBSOCKET_HOST "192.168.79.9"
