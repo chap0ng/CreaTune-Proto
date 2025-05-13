@@ -73,10 +73,11 @@ function setupESP32TimeoutCheck() {
 
 // Initialize Tone.js
 function initializeTone() {
-    // Create reverb effect
+    // Create reverb Valhalla effect
     reverb = new Tone.Reverb({
-        decay: 10,
-        wet: 0.8
+        decay: 3.5,
+        wet: 0.4,
+        preDelay: 0.4
     }).toDestination();
     reverb.generate();
     
@@ -103,7 +104,7 @@ function initializeTone() {
             release: 2
         }
     }).connect(reverb);
-    ambientSynth.volume.value = -12;
+    ambientSynth.volume.value = -5;
     
     // Create toy piano synth
     toyPianoSynth = new Tone.PolySynth(Tone.Synth, {
@@ -117,7 +118,7 @@ function initializeTone() {
             release: 1
         }
     }).connect(reverb);
-    toyPianoSynth.volume.value = -10;
+    toyPianoSynth.volume.value = -5;
     
     logToUI('Synthétiseurs Tone.js initialisés');
 }
@@ -216,7 +217,7 @@ async function startRecording() {
         // Set recording state
         isRecording = true;
         micButton.classList.add('active', 'recording');
-        micButton.textContent = "⏺️ Recording... (5s)";
+        micButton.textContent = "⏺";
         logToUI('Enregistrement microphone démarré');
         
         // Detect rhythm for 5 seconds
@@ -254,7 +255,7 @@ async function startRecording() {
                 }
                 
                 // Reset UI
-                micButton.textContent = "🎤 Record";
+                micButton.textContent = "Loop";
                 isRecording = false;
                 micButton.classList.remove('recording');
             }
@@ -265,7 +266,7 @@ async function startRecording() {
         logToUI('Erreur d\'accès au microphone: ' + err.message);
         isRecording = false;
         micButton.classList.remove('active', 'recording');
-        micButton.textContent = "🎤 Record";
+        micButton.textContent = "Record";
     }
 }
 
@@ -319,7 +320,7 @@ function stopRecording() {
     
     isRecording = false;
     micButton.classList.remove('active', 'recording');
-    micButton.textContent = "🎤 Record";
+    micButton.textContent = "Record";
     logToUI('Enregistrement microphone arrêté');
 }
 
@@ -578,6 +579,15 @@ function triggerSoundFromValue(value) {
     // Show visual feedback
     showCreature();
     
+    // Add reaction animation to creature
+    const creature = document.getElementById('creature');
+    creature.classList.add('creature-reacting');
+    
+    // Remove animation class after animation completes
+    setTimeout(() => {
+        creature.classList.remove('creature-reacting');
+    }, 400);
+    
     // Trigger different notes based on value range
     if (isAmbientPlaying) {
         let note;
@@ -609,9 +619,6 @@ function triggerSoundFromValue(value) {
         // Default synth if none active
         ambientSynth.triggerAttackRelease("C4", "8n");
     }
-    
-    // Update sprites or other visual elements
-    // This could be animated based on the sound
 }
 
 // Update synth parameters based on current value

@@ -15,20 +15,14 @@
             <div id="mic-icon" class="icon">
                 <img src="images/mic-icon.png" alt="Microphone">
             </div>
-            <h1>CreaTune</h1>
+            <h1>BetaTune</h1>
             <div id="plant-icon" class="icon">
                 <img src="images/plant-icon.png" alt="Plant">
             </div>
         </header>
-        
+       
         <div class="main-content">
-            <div class="visualization">
-                <div id="creature-container" class="hidden">
-                    <img src="images/creature.png" id="creature" alt="Creature">
-                </div>
-            </div>
-            
-            <div class="controls">
+            <div class="side-controls">
                 <button id="mic-button" class="control-button">
                     <span class="button-icon"></span>
                     <span class="button-text">Record</span>
@@ -41,29 +35,34 @@
                     <span class="button-icon"></span>
                     <span class="button-text">Toy Piano</span>
                 </button>
+                <button id="simulate-esp-button" class="control-button">
+                    <span class="button-icon"></span>
+                    <span class="button-text">Test ESP32</span>
+                </button>
             </div>
-            
-            <div class="esp-controls">
+
+            <div class="visualization">
+                <div id="creature-container" class="hidden">
+                    <img src="images/creature.png" id="creature" alt="Creature">
+                </div>
+            </div>
+           
+            <div class="status-container">
                 <div id="esp-status" class="status-indicator">
                     <div id="esp-led" class="led"></div>
-                    <span>ESP32: Disconnected</span>
+                    <span>ESP32</span>
                 </div>
                 <div id="data-status" class="status-indicator">
                     <div id="data-led" class="led"></div>
-                    <span>Data: None</span>
+                    <span>Data</span>
                 </div>
-                <button id="simulate-esp-button" class="control-button">
-                    <span class="button-icon"></span>
-                    <span class="button-text">Simulate ESP32</span>
-                </button>
             </div>
         </div>
-        
+       
         <div class="log-container">
             <div id="log"></div>
         </div>
     </div>
-
     <script src="app.js"></script>
 </body>
 </html>

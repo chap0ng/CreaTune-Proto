@@ -4,7 +4,7 @@
   "description": "Interactive musical experience with ESP32 sensor integration",
   "start_url": "./index.html",
   "display": "fullscreen",
-  "orientation": "portrait",
+  "orientation": "landscape",
   "background_color": "#f2efe9",
   "theme_color": "#e6695a",
   "icons": [
