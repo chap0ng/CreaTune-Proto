@@ -152,10 +152,7 @@ float moistureToAppValue(float moistureValue) {
     // In water (701-950) maps to 0.7-1.0
     appValue = map(moistureValue, MOISTURE_WET_MIN, MOISTURE_WET_MAX, 70, 100) / 100.0;
   }
-  
-  // Ensure value is within 0.4-0.8 range
-  if (appValue < 0.4) appValue = 0.4;
-  if (appValue > 0.8) appValue = 0.8;
+
   
   return appValue;
 }
