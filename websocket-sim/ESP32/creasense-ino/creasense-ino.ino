@@ -1,6 +1,7 @@
 /*
   CreaSense.ino
   ESP32 sensor data sender for CreaTune application
+  Modified for DFRobot Moisture Sensor on ESP32 Firebeetle 2 C6
 */
 
 #include <WiFi.h>
@@ -14,12 +15,27 @@ unsigned long lastConnectionAttempt = 0;
 const unsigned long connectionRetryInterval = 5000; // 5 seconds between connection attempts
 
 // LED pin for status indication
-const int STATUS_LED = 2; // Built-in LED on most ESP32 boards
+const int STATUS_LED = 38; // Built-in LED on Firebeetle 2 C6
+
+// DFRobot Moisture Sensor ranges
+const int MOISTURE_DRY = 0;     // Dry soil minimum value
+const int MOISTURE_DRY_MAX = 300;  // Dry soil maximum value
+const int MOISTURE_HUMID_MIN = 300; // Humid soil minimum value
+const int MOISTURE_HUMID_MAX = 700; // Humid soil maximum value
+const int MOISTURE_WET_MIN = 700;   // In water minimum value
+const int MOISTURE_WET_MAX = 950;   // In water maximum value
+
+// For smoothing sensor readings
+const int NUM_READINGS = 5;
+int moistureReadings[NUM_READINGS];
+int readIndex = 0;
+int totalMoisture = 0;
+int averageMoisture = 0;
 
 void setup() {
   // Initialize serial for debugging
   Serial.begin(115200);
-  Serial.println("\nCreaSense - Starting up...");
+  Serial.println("\nCreaSense Moisture Sensor - Starting up...");
 
   // Set up LED pin
   pinMode(STATUS_LED, OUTPUT);
@@ -27,6 +43,11 @@ void setup() {
 
   // Configure ADC
   analogReadResolution(12); // Set ADC resolution to 12 bits
+
+  // Initialize moisture reading array
+  for (int i = 0; i < NUM_READINGS; i++) {
+    moistureReadings[i] = 0;
+  }
 
   // Connect to WiFi
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -72,6 +93,7 @@ void setup() {
   Serial.print("Reading Interval: ");
   Serial.print(READING_INTERVAL);
   Serial.println("ms");
+  Serial.println("DFRobot Moisture Sensor connected");
 }
 
 void loop() {
@@ -102,22 +124,75 @@ void loop() {
   }
 }
 
-void sendSensorData() {
-  // Read analog value from sensor
-  int rawValue = analogRead(SENSOR_PIN);
+// Read the moisture sensor and smooth the values
+int readMoistureSensor() {
+  // Subtract the last reading
+  totalMoisture = totalMoisture - moistureReadings[readIndex];
   
-  // Convert to voltage (0-3.3V)
-  float voltage = (rawValue / ADC_RESOLUTION) * VOLTAGE_REFERENCE;
+  // Read the sensor
+  moistureReadings[readIndex] = analogRead(SENSOR_PIN);
+  
+  // Add the reading to the total
+  totalMoisture = totalMoisture + moistureReadings[readIndex];
+  
+  // Advance to the next position in the array
+  readIndex = (readIndex + 1) % NUM_READINGS;
+  
+  // Calculate the average
+  averageMoisture = totalMoisture / NUM_READINGS;
+  
+  return averageMoisture;
+}
+
+// Map moisture reading to app-compatible range (0.4-0.8)
+float moistureToAppValue(int moistureValue) {
+  float appValue;
+  
+  // Determine soil condition and map to appropriate range
+  if (moistureValue <= MOISTURE_DRY_MAX) {
+    // Dry soil (0-300) maps to 0.4-0.5
+    appValue = map(moistureValue, MOISTURE_DRY, MOISTURE_DRY_MAX, 40, 50) / 100.0;
+  } 
+  else if (moistureValue <= MOISTURE_HUMID_MAX) {
+    // Humid soil (301-700) maps to 0.5-0.7
+    appValue = map(moistureValue, MOISTURE_HUMID_MIN, MOISTURE_HUMID_MAX, 50, 70) / 100.0;
+  } 
+  else {
+    // In water (701-950) maps to 0.7-0.8
+    appValue = map(moistureValue, MOISTURE_WET_MIN, MOISTURE_WET_MAX, 70, 80) / 100.0;
+  }
+  
+  // Ensure value is within 0.4-0.8 range
+  if (appValue < 0.4) appValue = 0.4;
+  if (appValue > 0.8) appValue = 0.8;
+  
+  return appValue;
+}
+
+void sendSensorData() {
+  // Read moisture sensor
+  int moistureValue = readMoistureSensor();
+  
+  // Map to app-compatible value (0.4-0.8)
+  float appValue = moistureToAppValue(moistureValue);
   
   // Create JSON document
   StaticJsonDocument<200> doc;
   doc["sensor"] = SENSOR_NAME;
-  doc["raw_value"] = rawValue;
-  doc["voltage"] = voltage;
+  doc["raw_value"] = moistureValue;
+  doc["moisture_app_value"] = appValue;
+  doc["voltage"] = appValue; // Send as voltage to be compatible with app
   doc["timestamp"] = millis();
-  
-  // Special field for CreaTune app to recognize the data type
   doc["type"] = "sensor_data";
+  
+  // Add soil condition description
+  if (moistureValue <= MOISTURE_DRY_MAX) {
+    doc["soil_condition"] = "dry";
+  } else if (moistureValue <= MOISTURE_HUMID_MAX) {
+    doc["soil_condition"] = "humid";
+  } else {
+    doc["soil_condition"] = "wet";
+  }
   
   // Serialize JSON to string
   String jsonString;

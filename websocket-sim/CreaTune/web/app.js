@@ -466,17 +466,14 @@ function stopESPSimulation() {
 // Connect to WebSocket server
 function connectWebSocket() {
     try {
+        // Use your server IP address here instead of localhost
         socket = new WebSocket('ws://localhost:8080');
+        // Example with IP address: 
+        // socket = new WebSocket('ws://192.168.1.100:8080');
         
         socket.onopen = function(event) {
-            updateESPStatus(true);
-            isESP32Connected = true;
             logToUI('Connexion WebSocket établie');
-            
-            // If simulation is active, stop it
-            if (isSimulationActive) {
-                stopESPSimulation();
-            }
+            // Don't set ESP32 connected here - wait for actual data
         };
         
         socket.onmessage = function(event) {
@@ -486,15 +483,19 @@ function connectWebSocket() {
                 // Try to parse the data as JSON
                 const data = JSON.parse(event.data);
                 
-                // If it's a sensor data message with voltage
-                if (data.voltage !== undefined) {
-                    const voltage = parseFloat(data.voltage);
+                // If it's a sensor data message with voltage or moisture_app_value
+                if (data.type === "sensor_data") {
+                    // Now we know it's an ESP32
+                    isESP32Connected = true;
+                    updateESPStatus(true);
                     
-                    // Map voltage to 0-1 range (assuming voltage is 0-3.3V for ESP32)
-                    const normalizedValue = Math.min(Math.max(voltage / 3.3, 0), 1);
+                    // Get the value - either voltage or moisture_app_value
+                    const value = data.moisture_app_value || data.voltage;
                     
-                    // Process the value
-                    processESPData(normalizedValue);
+                    if (value !== undefined) {
+                        // Process the value
+                        processESPData(value);
+                    }
                 }
             } catch (err) {
                 // Not JSON or doesn't have the expected format
