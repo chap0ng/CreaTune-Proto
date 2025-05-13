@@ -10,6 +10,8 @@ let recorder;
 let micStream;
 let analysisInterval;
 let rhythmLoop;
+let lastESP32ActivityTime = 0;
+let ESP32TimeoutCheck;
 
 // Tone.js elements
 let ambientSynth;
@@ -43,11 +45,30 @@ function initialize() {
     // Setup WebSocket connection
     connectWebSocket();
     
+    // Setup ESP32 timeout checker
+    setupESP32TimeoutCheck();
+    
     // Log app initialization
     logToUI('Application CreaTune initialisée');
     
     // Request fullscreen on mobile
     setupFullscreen();
+}
+
+// Setup ESP32 timeout check
+function setupESP32TimeoutCheck() {
+    // Check every 10 seconds if ESP32 is still active
+    ESP32TimeoutCheck = setInterval(() => {
+        // If ESP32 was connected but no data for 15 seconds
+        if (isESP32Connected && Date.now() - lastESP32ActivityTime > 15000) {
+            // Mark as disconnected
+            isESP32Connected = false;
+            updateESPStatus(false);
+            updateDataStatus(false);
+            hideCreature();
+            logToUI('ESP32 timeout - no data received for 15s');
+        }
+    }, 10000);
 }
 
 // Initialize Tone.js
@@ -496,6 +517,9 @@ function connectWebSocket() {
                         // Process the value
                         processESPData(value);
                     }
+                    
+                    // Reset the last active time
+                    lastESP32ActivityTime = Date.now();
                 }
             } catch (err) {
                 // Not JSON or doesn't have the expected format

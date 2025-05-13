@@ -1,12 +1,12 @@
 // config.h
-// Configuration for CreaSense ESP32 with DFRobot Moisture Sensor
+// Configuration for CreaSense ESP32
 
 // WiFi configuration
 #define WIFI_SSID "CreaTone"
-#define WIFI_PASSWORD "CreaToToToTone"
+#define WIFI_PASSWORD "Creax"
 
 // WebSocket configuration
-#define WEBSOCKET_HOST "192.168.79.9"
+#define WEBSOCKET_HOST "192.168.43.1"
 #define WEBSOCKET_PORT 8080
 #define WEBSOCKET_PATH "/"
 
@@ -15,7 +15,7 @@
 #define SENSOR_PIN 1                    // Connect moisture sensor to ADC pin 1 (GPIO1/A1)
 #define READING_INTERVAL 5000           // Send data every 5000ms (5 seconds)
 
-// Status LED
+// LED pin
 #define STATUS_LED 15                   // Built-in LED pin
 
 // ADC configuration

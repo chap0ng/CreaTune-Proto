@@ -236,7 +236,7 @@ void connectToWiFi() {
   while (WiFi.status() != WL_CONNECTED && retries < 10) {
     digitalWrite(STATUS_LED, HIGH); delay(200);
     digitalWrite(STATUS_LED, LOW); delay(200);
-    Serial.print(">w< ");
+    Serial.print(".");
     retries++;
   }
   
