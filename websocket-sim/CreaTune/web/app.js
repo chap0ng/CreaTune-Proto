@@ -83,25 +83,25 @@ function initializeTone() {
     
     // Create ambient synth
     ambientSynth = new Tone.PolySynth(Tone.FMSynth, {
-        harmonicity: 1.5,
-        modulationIndex: 10,
+        harmonicity: 3.01, // More harmonic for wood-like resonance
+        modulationIndex: 25,  // Increased for more complex timbre
         oscillator: {
-            type: "sine"
+          type: "triangle" // Triangle gives more woody overtones than sine
         },
         envelope: {
-            attack: 1,
-            decay: 0.5,
-            sustain: 0.5,
-            release: 5
+          attack: 0.02,  // Faster attack for percussive quality
+          decay: 0.8,    // Medium decay for wood resonance
+          sustain: 0.1,  // Low sustain for percussive sound
+          release: 1.5   // Medium release for natural decay
         },
         modulation: {
-            type: "triangle"
+          type: "square" // Square adds harmonics that create wooden character
         },
         modulationEnvelope: {
-            attack: 0.5,
-            decay: 0.5,
-            sustain: 0.2,
-            release: 2
+          attack: 0.005, // Very quick mod attack
+          decay: 0.3,    // Short mod decay
+          sustain: 0.1,  // Low sustain
+          release: 0.8   // Medium release
         }
     }).connect(reverb);
     ambientSynth.volume.value = -5;
